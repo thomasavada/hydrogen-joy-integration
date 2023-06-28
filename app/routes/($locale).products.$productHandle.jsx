@@ -30,6 +30,7 @@ import {getExcerpt} from '~/lib/utils';
 import {seoPayload} from '~/lib/seo.server';
 import {MEDIA_FRAGMENT, PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
 import {routeHeaders} from '~/data/cache';
+import useJoyLoyaltyCalculator from '~/hooks/useJoyLoyaltyCalculator';
 
 export const headers = routeHeaders;
 
@@ -92,9 +93,11 @@ export async function loader({params, request, context}) {
 }
 
 export default function Product() {
-  const {product, shop, recommended} = useLoaderData();
+  const {product, shop, recommended, analytics} = useLoaderData();
   const {media, title, vendor, descriptionHtml} = product;
   const {shippingPolicy, refundPolicy} = shop;
+
+  useJoyLoyaltyCalculator({product, analytics});
 
   return (
     <>
@@ -136,6 +139,7 @@ export default function Product() {
                     learnMore={`/policies/${refundPolicy.handle}`}
                   />
                 )}
+                <div className="joy-points-calculator__block"></div>
               </div>
             </section>
           </div>
@@ -510,6 +514,13 @@ const PRODUCT_QUERY = `#graphql
       options {
         name
         values
+      }
+      tags
+      productType
+      collections (first: 100) {
+        nodes {
+          title
+        }
       }
       selectedVariant: variantBySelectedOptions(selectedOptions: $selectedOptions) {
         ...ProductVariantFragment

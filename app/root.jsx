@@ -13,9 +13,6 @@ import {
 import {ShopifySalesChannel, Seo} from '@shopify/hydrogen';
 import invariant from 'tiny-invariant';
 
-import {seoPayload} from '~/lib/seo.server';
-import {Layout} from '~/components';
-
 import favicon from '../public/favicon.svg';
 
 import {GenericError} from './components/GenericError';
@@ -23,6 +20,10 @@ import {NotFound} from './components/NotFound';
 import styles from './styles/app.css';
 import {DEFAULT_LOCALE, parseMenu, getCartId} from './lib/utils';
 import {useAnalytics} from './hooks/useAnalytics';
+
+import {Layout} from '~/components';
+import {seoPayload} from '~/lib/seo.server';
+import {useJoyLoyalty} from '~/hooks/useJoyLoyalty';
 
 export const links = () => {
   return [
@@ -41,23 +42,31 @@ export const links = () => {
 
 export async function loader({request, context}) {
   const cartId = getCartId(request);
-  const [customerAccessToken, layout] = await Promise.all([
+  const [customerAccessToken, layout, joyData] = await Promise.all([
     context.session.get('customerAccessToken'),
     getLayoutData(context),
+    getJoyData(context),
   ]);
+  const customer = await getCustomerData({
+    storefront: context.storefront,
+    customerAccessToken,
+  });
 
   const seo = seoPayload.root({shop: layout.shop, url: request.url});
+  const cart = cartId ? await getCart(context, cartId) : undefined;
 
   return defer({
     isLoggedIn: Boolean(customerAccessToken),
     layout,
     selectedLocale: context.storefront.i18n,
-    cart: cartId ? getCart(context, cartId) : undefined,
+    cart,
     analytics: {
       shopifySalesChannel: ShopifySalesChannel.hydrogen,
       shopId: layout.shop.id,
     },
     seo,
+    joyData,
+    customer,
   });
 }
 
@@ -67,6 +76,7 @@ export default function App() {
   const hasUserConsent = true;
 
   useAnalytics(hasUserConsent, locale);
+  useJoyLoyalty(data);
 
   return (
     <html lang={locale.language}>
@@ -353,4 +363,49 @@ export async function getCart({storefront}, cartId) {
   });
 
   return cart;
+}
+
+/**
+ *
+ * @returns {Promise<*>}
+ */
+async function getJoyData({storefront}) {
+  const joyData = await storefront.query(
+    `
+      #graphql
+      query {
+        shop {
+          metafield (namespace: "joy_loyalty_avada", key: "data"){
+            value
+          }
+        }
+      }
+    `,
+    {variables: {}},
+  );
+  return joyData.shop.metafield
+    ? JSON.parse(joyData.shop.metafield.value)
+    : null;
+}
+
+/**
+ *
+ * @returns {Promise<*>}
+ */
+async function getCustomerData({storefront, customerAccessToken}) {
+  const {customer} = await storefront.query(
+    `
+      #graphql
+      query {
+        customer(customerAccessToken: "${customerAccessToken}") {
+          email
+          firstName
+          id
+          lastName
+        }
+      }
+    `,
+    {variables: {}},
+  );
+  return customer;
 }
