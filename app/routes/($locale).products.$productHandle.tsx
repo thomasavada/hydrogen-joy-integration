@@ -37,6 +37,7 @@ import {seoPayload} from '~/lib/seo.server';
 import {MEDIA_FRAGMENT, PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
 import type {Storefront} from '~/lib/type';
 import {routeHeaders} from '~/data/cache';
+import useJoyLoyaltyCalculator from '~/hooks/useJoyLoyaltyCalculator';
 
 export const headers = routeHeaders;
 
@@ -99,9 +100,12 @@ export async function loader({params, request, context}: LoaderArgs) {
 }
 
 export default function Product() {
-  const {product, shop, recommended} = useLoaderData<typeof loader>();
+  const {product, shop, recommended, analytics} =
+    useLoaderData<typeof loader>();
   const {media, title, vendor, descriptionHtml} = product;
   const {shippingPolicy, refundPolicy} = shop;
+
+  useJoyLoyaltyCalculator({product, analytics});
 
   return (
     <>
@@ -143,6 +147,7 @@ export default function Product() {
                     learnMore={`/policies/${refundPolicy.handle}`}
                   />
                 )}
+                <div className="joy-points-calculator__block"></div>
               </div>
             </section>
           </div>
@@ -444,6 +449,7 @@ function ProductDetail({
   content: string;
   learnMore?: string;
 }) {
+  // @ts-ignore
   return (
     <Disclosure key={title} as="div" className="grid w-full gap-2">
       {({open}) => (
@@ -537,6 +543,13 @@ const PRODUCT_QUERY = `#graphql
       options {
         name
         values
+      }
+      tags
+      productType
+      collections (first: 100) {
+        nodes {
+          title
+        }
       }
       selectedVariant: variantBySelectedOptions(selectedOptions: $selectedOptions) {
         ...ProductVariantFragment

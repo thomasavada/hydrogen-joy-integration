@@ -20,6 +20,7 @@ import invariant from 'tiny-invariant';
 
 import {seoPayload} from '~/lib/seo.server';
 import {Layout} from '~/components';
+import {useJoyLoyalty} from '~/hooks/useJoyLoyalty';
 
 import favicon from '../public/favicon.svg';
 
@@ -46,10 +47,15 @@ export const links: LinksFunction = () => {
 
 export async function loader({request, context}: LoaderArgs) {
   const cartId = getCartId(request);
-  const [customerAccessToken, layout] = await Promise.all([
+  const [customerAccessToken, layout, joyData] = await Promise.all([
     context.session.get('customerAccessToken'),
     getLayoutData(context),
+    getJoyData(context),
   ]);
+  const customer = await getCustomerData({
+    storefront: context.storefront,
+    customerAccessToken,
+  });
 
   const seo = seoPayload.root({shop: layout.shop, url: request.url});
 
@@ -63,6 +69,8 @@ export async function loader({request, context}: LoaderArgs) {
       shopId: layout.shop.id,
     },
     seo,
+    joyData,
+    customer,
   });
 }
 
@@ -72,6 +80,7 @@ export default function App() {
   const hasUserConsent = true;
 
   useAnalytics(hasUserConsent, locale);
+  useJoyLoyalty(data);
 
   return (
     <html lang={locale.language}>
@@ -358,4 +367,52 @@ export async function getCart({storefront}: AppLoadContext, cartId: string) {
   });
 
   return cart;
+}
+
+/**
+ *
+ * @returns {Promise<*>}
+ */
+async function getJoyData({storefront}: AppLoadContext) {
+  const joyData = await storefront.query(
+    `
+      #graphql
+      query {
+        shop {
+          metafield (namespace: "joy_loyalty_avada", key: "data"){
+            value
+          }
+        }
+      }
+    `,
+    {variables: {}},
+  );
+  return joyData.shop.metafield
+    ? JSON.parse(joyData.shop.metafield.value)
+    : null;
+}
+
+/**
+ *
+ * @returns {Promise<*>}
+ */
+async function getCustomerData({
+  storefront,
+  customerAccessToken,
+}: AppLoadContext) {
+  const {customer} = await storefront.query(
+    `
+      #graphql
+      query {
+        customer(customerAccessToken: "${customerAccessToken}") {
+          email
+          firstName
+          id
+          lastName
+        }
+      }
+    `,
+    {variables: {}},
+  );
+  return customer;
 }
