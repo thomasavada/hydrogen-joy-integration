@@ -6,7 +6,7 @@ import {
   useMatches,
   useOutlet,
 } from '@remix-run/react';
-import {Suspense} from 'react';
+import {Suspense, useEffect} from 'react';
 import {
   json,
   defer,
@@ -130,10 +130,35 @@ function Account({customer, heading, featuredData}: AccountType) {
   const orders = flattenConnection(customer.orders);
   const addresses = flattenConnection(customer.addresses);
 
+  useEffect(() => {
+    (window as any).AVADA_JOY = (window as any).AVADA_JOY || {};
+    (window as any).AVADA_JOY.customer = customer
+      ? {
+          ...customer,
+          first_name: customer.firstName,
+          last_name: customer.lastName,
+          id: parseFloat(
+            customer?.id?.replace?.('gid://shopify/Customer/', ''),
+          ),
+        }
+      : {email: null, first_name: null, last_name: null, id: null};
+    if ((window as any).avadaInitAfterLogin) {
+      (window as any).avadaInitAfterLogin();
+    }
+  }, []);
+
   return (
     <>
       <PageHeader heading={heading}>
-        <Form method="post" action={usePrefixPathWithLocale('/account/logout')}>
+        <Form
+          onSubmit={() => {
+            if ((window as any).avadaSetCustomerLogout) {
+              (window as any).avadaSetCustomerLogout();
+            }
+          }}
+          method="post"
+          action={usePrefixPathWithLocale('/account/logout')}
+        >
           <button type="submit" className="text-primary/50">
             Sign out
           </button>
@@ -235,6 +260,7 @@ const CUSTOMER_QUERY = `#graphql
   }
 
   fragment CustomerDetails on Customer {
+    id
     firstName
     lastName
     phone

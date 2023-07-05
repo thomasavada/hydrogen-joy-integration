@@ -6,8 +6,8 @@ interface UseJoyLoyaltyData {
   customer: {
     id: string;
     email: string | null;
-    first_name: string | null;
-    last_name: string | null;
+    firstName: string | null;
+    lastName: string | null;
   } | null;
   joyData: {
     programPlaceOrder: Record<string, unknown>;
@@ -33,6 +33,8 @@ export function useJoyLoyalty(data: UseJoyLoyaltyData): void {
       (window as any).AVADA_JOY.customer = data.customer
         ? {
             ...data.customer,
+            first_name: data.customer.firstName,
+            last_name: data.customer.lastName,
             id: parseFloat(
               data.customer.id.replace('gid://shopify/Customer/', ''),
             ),

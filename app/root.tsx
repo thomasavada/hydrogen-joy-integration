@@ -400,6 +400,7 @@ async function getCustomerData({
   storefront,
   customerAccessToken,
 }: AppLoadContext) {
+  console.log('Getting customer data');
   const {customer} = await storefront.query(
     `
       #graphql
