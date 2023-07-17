@@ -78,6 +78,12 @@ function Header({title, menu}: {title: string; menu?: EnhancedMenu}) {
     openCart();
   }, [addToCartFetchers, isCartOpen, openCart]);
 
+  useEffect(() => {
+    if ((window as any).avadaJoyToggleFloatingButton) {
+      (window as any).avadaJoyToggleFloatingButton();
+    }
+  }, [isCartOpen]);
+
   return (
     <>
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
