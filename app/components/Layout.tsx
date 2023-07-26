@@ -82,6 +82,11 @@ function Header({title, menu}: {title: string; menu?: EnhancedMenu}) {
     if ((window as any).avadaJoyToggleFloatingButton) {
       (window as any).avadaJoyToggleFloatingButton();
     }
+    if ((window as any).avadaJoyRerenderAllCalculators) {
+      setTimeout(() => {
+        (window as any).avadaJoyRerenderAllCalculators();
+      }, 100);
+    }
   }, [isCartOpen]);
 
   return (

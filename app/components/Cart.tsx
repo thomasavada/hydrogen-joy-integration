@@ -57,11 +57,12 @@ export function CartDetails({
   };
 
   return (
-    <div className={container[layout]}>
+    <div className={container[layout] + ' cart-drawer'}>
       <CartLines lines={cart?.lines} layout={layout} />
       {cartHasItems && (
         <CartSummary cost={cart.cost} layout={layout}>
           <CartDiscounts discountCodes={cart.discountCodes} />
+          <div className="joy-points-calculator__block"></div>
           <CartCheckoutActions checkoutUrl={cart.checkoutUrl} />
         </CartSummary>
       )}

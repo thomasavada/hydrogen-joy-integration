@@ -58,12 +58,13 @@ export async function loader({request, context}: LoaderArgs) {
   });
 
   const seo = seoPayload.root({shop: layout.shop, url: request.url});
+  const cartData = cartId ? await getCart(context, cartId) : undefined;
 
   return defer({
     isLoggedIn: Boolean(customerAccessToken),
     layout,
     selectedLocale: context.storefront.i18n,
-    cart: cartId ? getCart(context, cartId) : undefined,
+    cart: cartData,
     analytics: {
       shopifySalesChannel: ShopifySalesChannel.hydrogen,
       shopId: layout.shop.id,
@@ -400,7 +401,6 @@ async function getCustomerData({
   storefront,
   customerAccessToken,
 }: AppLoadContext) {
-  console.log('Getting customer data');
   const {customer} = await storefront.query(
     `
       #graphql

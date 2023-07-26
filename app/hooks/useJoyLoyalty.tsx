@@ -49,7 +49,7 @@ export function useJoyLoyalty(data: UseJoyLoyaltyData): void {
       (window as any).AVADA_JOY.account_enabled = 'true';
       (window as any).AVADA_JOY.login_url = '/account/login';
       (window as any).AVADA_JOY.register_url = '/account/register';
-      (window as any).AVADA_JOY.cart = data.cart;
+      (window as any).AVADA_JOY.cartProducts = data.cart;
       (window as any).AVADA_JOY.shopId = data.joyData.shopId;
 
       (window as any).Shopify = (window as any).Shopify || {};
