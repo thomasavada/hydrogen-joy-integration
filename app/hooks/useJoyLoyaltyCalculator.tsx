@@ -57,8 +57,8 @@ export default function useJoyLoyaltyCalculator({
         id: 'avada-joy-calculator',
         url: `https://cdn.shopify.com/extensions/505ce933-6eff-47ee-a32f-dee5ae134593/0.0.0/assets/avada-joy-points-calculator.min.js?v=${new Date().getTime()}`,
       });
-      if ((window as any).avadaJoyRerenderCalculator) {
-        (window as any).avadaJoyRerenderCalculator();
+      if ((window as any).avadaJoyRerenderAllCalculators) {
+        (window as any).avadaJoyRerenderAllCalculators();
       }
     } catch (e) {
       console.log('Cannot init Avada Joy', e);
