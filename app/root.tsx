@@ -306,7 +306,15 @@ const CART_QUERY = `#graphql
               product {
                 handle
                 title
-                id
+                id,
+                productType,
+                vendor,
+                tags,
+                collections (first: 100) {
+                  nodes {
+                    title
+                  }
+                }
               }
               selectedOptions {
                 name
