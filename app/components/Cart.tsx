@@ -229,52 +229,58 @@ function CartLineItem({line}: {line: CartLine}) {
   const {id, quantity, merchandise} = line;
 
   if (typeof quantity === 'undefined' || !merchandise?.product) return null;
+  const finalLinePrice = parseFloat(line.cost.totalAmount.amount);
+  const variantId = parseId(line.merchandise.id);
 
   return (
-    <li key={id} className="flex gap-4">
-      <div className="flex-shrink">
-        {merchandise.image && (
-          <Image
-            width={110}
-            height={110}
-            data={merchandise.image}
-            className="object-cover object-center w-24 h-24 border rounded md:w-28 md:h-28"
-            alt={merchandise.title}
-          />
-        )}
-      </div>
-
-      <div className="flex justify-between flex-grow">
-        <div className="grid gap-2">
-          <Heading as="h3" size="copy">
-            {merchandise?.product?.handle ? (
-              <Link to={`/products/${merchandise.product.handle}`}>
-                {merchandise?.product?.title || ''}
-              </Link>
-            ) : (
-              <Text>{merchandise?.product?.title || ''}</Text>
-            )}
-          </Heading>
-
-          <div className="grid pb-2">
-            {(merchandise?.selectedOptions || []).map((option) => (
-              <Text color="subtle" key={option.name}>
-                {option.name}: {option.value}
-              </Text>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex justify-start text-copy">
-              <CartLineQuantityAdjust line={line} />
-            </div>
-            <ItemRemoveButton lineIds={[id]} />
-          </div>
+    <li key={id} className="flex flex-col">
+      <div className={'flex gap-4'}>
+        <div className="flex-shrink">
+          {merchandise.image && (
+            <Image
+              width={110}
+              height={110}
+              data={merchandise.image}
+              className="object-cover object-center w-24 h-24 border rounded md:w-28 md:h-28"
+              alt={merchandise.title}
+            />
+          )}
         </div>
-        <Text>
-          <CartLinePrice line={line} as="span" />
-        </Text>
+        <div className="flex justify-between flex-grow">
+          <div className="grid gap-2">
+            <Heading as="h3" size="copy">
+              {merchandise?.product?.handle ? (
+                <Link to={`/products/${merchandise.product.handle}`}>
+                  {merchandise?.product?.title || ''}
+                </Link>
+              ) : (
+                <Text>{merchandise?.product?.title || ''}</Text>
+              )}
+            </Heading>
+
+            <div className="grid pb-2">
+              {(merchandise?.selectedOptions || []).map((option) => (
+                <Text color="subtle" key={option.name}>
+                  {option.name}: {option.value}
+                </Text>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex justify-start text-copy">
+                <CartLineQuantityAdjust line={line} />
+              </div>
+              <ItemRemoveButton lineIds={[id]} />
+            </div>
+          </div>
+          <Text>
+            <CartLinePrice line={line} as="span" />
+          </Text>
+        </div>
       </div>
+      <div
+        className={`flex joy-points-calculator__blockitem joy-points-calculator__blockitem--${variantId}`}
+        data-final-line-price={`${finalLinePrice}`}
+      ></div>
     </li>
   );
 }
@@ -430,4 +436,13 @@ export function CartEmpty({
       </section>
     </div>
   );
+}
+
+/**
+ *
+ * @param {string} id
+ * @return {number}
+ */
+function parseId(id: string): number {
+  return parseInt(id.replace(/^\D+/g, ''));
 }
