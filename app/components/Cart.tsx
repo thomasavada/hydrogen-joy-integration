@@ -231,6 +231,7 @@ function CartLineItem({line}: {line: CartLine}) {
   if (typeof quantity === 'undefined' || !merchandise?.product) return null;
   const finalLinePrice = parseFloat(line.cost.totalAmount.amount);
   const variantId = parseId(line.merchandise.id);
+  const productId = parseId(line.merchandise.product.id);
 
   return (
     <li key={id} className="flex flex-col">
@@ -280,6 +281,7 @@ function CartLineItem({line}: {line: CartLine}) {
       <div
         className={`flex joy-points-calculator__blockitem joy-points-calculator__blockitem--${variantId}`}
         data-final-line-price={`${finalLinePrice}`}
+        data-product-id={`${productId}`}
       ></div>
     </li>
   );
